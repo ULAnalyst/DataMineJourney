@@ -1,0 +1,409 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "d89496b8-ebc3-4a99-a656-82a78299d8f5",
+   "metadata": {},
+   "source": [
+    "# Project 10 -- Ursula Leverette"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "id": "ce3e0719-df6c-42da-be82-829dac7d5d89",
+   "metadata": {},
+   "source": [
+    "**TA Help:** \n",
+    "   \n",
+    "\n",
+    "\n",
+    "**Collaboration:** My Friend in CS, My Uncle, Another Student, etc., list names of any other people who helped you\n",
+    "\n",
+    "(describe the tasks that they helped you with)\n",
+    "- For example: helped figuring out how to load the dataset.\n",
+    "- Another example: helped debug error with my plot.\n",
+    "\n",
+    "**Internet Resources:** Stack Overflow\n",
+    "\n",
+    "(describe any information that you learned from internet resources, including the URLs)\n",
+    "\n",
+    "\n",
+    "**ChatGPT, Gemini, Claude, etc:** Any language models or generative AI chatbots that helped you.\n",
+    "\n",
+    "(if you used any such tools, please tell us here)\n",
+    "- For example:  I asked ChatGPT how to define a new data frames\n",
+    "- Another example:  Gemini told me how to make a function for sorting my data\n",
+    "\n",
+    "**OVERALL MESSAGE:** Any time that you used anything except your brain to solve the questions in these projects, you need to disclose such resources at the start of the project, with details about your usage of the tools.\n",
+    "\n",
+    "**YOUR OWN WORK:** Even when you utilize other resources, do NOT just copy and paste.  Write all explanations in your own words, using several sentences in English, which are understandable and which you wrote (and did not just copy and paste).\n",
+    "\n",
+    "## Question 1\n",
+    " \n",
+    "- 1.1. Connect to MongoDB and create a database called 'movies_db' with a collection called 'movies',\n",
+    "- 1.2. Import the movies dataset from into the collection,\n",
+    "- 1.3. Write a query to find sample movies in the collection,\n",
+    "- 1.4. Answer the questions about the dataset based on your query results.\n",
+    "    - A. How many movies are in the collection? 45466\n",
+    "\n",
+    "    - B. What is the structure of a movie document? dictionary list\n",
+    "\n",
+    "    - C. What are the different fields available in each movie document?\n",
+    "\n",
+    "    - D. What are some sample movie titles?\n",
+    " \n",
+    "Title: Toy Story\n",
+    "Title: Jumanji\n",
+    "Title: Grumpier Old Men\n",
+    "Title: Waiting to Exhale\n",
+    "Title: Father of the Bride Part II\n",
+    "Title: Heat\n",
+    "Title: Sabrina\n",
+    "Title: Tom and Huck\n",
+    "Title: Sudden Death\n",
+    "Title: GoldenEye"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "93245463-9435-4e2e-8f74-13322d1ce141",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from pymongo import MongoClient # This brings in the tools we need to connect to our MongoDB database.\n",
+    "client = MongoClient('mongodb://localhost:27017/') # create a client to connect to the local MongoDB instance\n",
+    "db = client['movies_db'] #  Create or connect to a database - like creating a sql database or using a database in sql \n",
+    "movies = db['movies'] # This gives us a place inside the database to put our movie records; MongoDB calls this a \"collection.\"\n",
+    "# In SQL, this would be a \"table,\" but here it's more flexible because documents inside can look different."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "fd3228cb-544d-48ee-96f9-623dd958fc46",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_1326/4130118073.py:3: DtypeWarning: Columns (10) have mixed types. Specify dtype option on import or set low_memory=False.\n",
+      "  mv_df = pd.read_csv ('/anvil/projects/tdm/data/MovieLens/movies_metadata.csv')\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Inserted 45466 movies\n"
+     ]
+    }
+   ],
+   "source": [
+    "import pandas as pd # This helps us read and work with spreadsheets or tables in Python.\n",
+    "import json # This lets us work with JSON, a way to store and share data.\n",
+    "mv_df = pd.read_csv ('/anvil/projects/tdm/data/MovieLens/movies_metadata.csv') # Read the CSV file and convert to MongoDB documents\n",
+    "movies_data = mv_df.to_dict('records') # turn each movie row into a dictionary—a small list of facts about each movie. \n",
+    "# Insert the data into MongoDB\n",
+    "result = movies.insert_many(movies_data) # This inserts all of our movies into the MongoDB collection.\n",
+    "print(f\"Inserted {len(result.inserted_ids)} movies\") # print how many movies are in our folder."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "b08f60af-e882-41a7-a34e-e550f4a951d3",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Total movies in collection: 45466\n"
+     ]
+    }
+   ],
+   "source": [
+    "sample_movies = list(movies.find().limit(5)) # Find all movies (limit to first 5 for display)\n",
+    "print(f\"Total movies in collection: {movies.count_documents({})}\") "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "799fcc65-52e5-412c-a163-d99a8f5e3a4d",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Title: Toy Story\n",
+      "Release Date: 1995-10-30\n",
+      "Vote Average: 7.7\n",
+      "---\n",
+      "Title: Jumanji\n",
+      "Release Date: 1995-12-15\n",
+      "Vote Average: 6.9\n",
+      "---\n",
+      "Title: Grumpier Old Men\n",
+      "Release Date: 1995-12-22\n",
+      "Vote Average: 6.5\n",
+      "---\n",
+      "Title: Waiting to Exhale\n",
+      "Release Date: 1995-12-22\n",
+      "Vote Average: 6.1\n",
+      "---\n",
+      "Title: Father of the Bride Part II\n",
+      "Release Date: 1995-02-10\n",
+      "Vote Average: 5.7\n",
+      "---\n"
+     ]
+    }
+   ],
+   "source": [
+    "# For each of the first five movies, we print some basic facts: their name, release date, and average votes.\n",
+    "for movie in sample_movies: \n",
+    "    print(f\"Title: {movie.get('title', 'N/A')}\") \n",
+    "    print(f\"Release Date: {movie.get('release_date', 'N/A')}\") \n",
+    "    print(f\"Vote Average: {movie.get('vote_average', 'N/A')}\") \n",
+    "    print(\"---\") # Separator for readability"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "b9206e8c-8607-4137-9d65-4c7b7a5ecf89",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "_id: ObjectId\n",
+      " Value: 6907a713aff8fc181aee5ce5\n",
+      "\n",
+      "adult: str\n",
+      " Value: False\n",
+      "\n",
+      "belongs_to_collection: str\n",
+      " Value: {'id': 10194, 'name': 'Toy Story Collection', 'poster_path': '/7G9915LfUQ2lVfwMEEhDsn3kT4B.jpg', 'ba...\n",
+      "\n",
+      "budget: str\n",
+      " Value: 30000000\n",
+      "\n",
+      "genres: str\n",
+      " Value: [{'id': 16, 'name': 'Animation'}, {'id': 35, 'name': 'Comedy'}, {'id': 10751, 'name': 'Family'}]\n",
+      "\n",
+      "homepage: str\n",
+      " Value: http://toystory.disney.com/toy-story\n",
+      "\n",
+      "id: str\n",
+      " Value: 862\n",
+      "\n",
+      "imdb_id: str\n",
+      " Value: tt0114709\n",
+      "\n",
+      "original_language: str\n",
+      " Value: en\n",
+      "\n",
+      "original_title: str\n",
+      " Value: Toy Story\n",
+      "\n",
+      "overview: str\n",
+      " Value: Led by Woody, Andy's toys live happily in his room until Andy's birthday brings Buzz Lightyear onto ...\n",
+      "\n",
+      "popularity: float\n",
+      " Value: 21.946943\n",
+      "\n",
+      "poster_path: str\n",
+      " Value: /rhIRbceoE9lR4veEXuwCC2wARtG.jpg\n",
+      "\n",
+      "production_companies: str\n",
+      " Value: [{'name': 'Pixar Animation Studios', 'id': 3}]\n",
+      "\n",
+      "production_countries: str\n",
+      " Value: [{'iso_3166_1': 'US', 'name': 'United States of America'}]\n",
+      "\n",
+      "release_date: str\n",
+      " Value: 1995-10-30\n",
+      "\n",
+      "revenue: float\n",
+      " Value: 373554033.0\n",
+      "\n",
+      "runtime: float\n",
+      " Value: 81.0\n",
+      "\n",
+      "spoken_languages: str\n",
+      " Value: [{'iso_639_1': 'en', 'name': 'English'}]\n",
+      "\n",
+      "status: str\n",
+      " Value: Released\n",
+      "\n",
+      "tagline: float\n",
+      " Value: nan\n",
+      "\n",
+      "title: str\n",
+      " Value: Toy Story\n",
+      "\n",
+      "video: bool\n",
+      " Value: False\n",
+      "\n",
+      "vote_average: float\n",
+      " Value: 7.7\n",
+      "\n",
+      "vote_count: float\n",
+      " Value: 5415.0\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "# look inside one movie page and see what sections it has (like title, genres, description) and what kind of info is in each section.\n",
+    "sample_movie = movies.find_one() # Get the structure of a movie document\n",
+    "for key, value in sample_movie.items(): \n",
+    "    print(f\"{key}: {type(value).__name__}\\n Value: {value if not isinstance(value, str) \n",
+    "    or len(str(value)) <= 100 else str(value)[:100]+'...'}\\n\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8ee5e5b1-8b49-40e6-93a0-bd473fb0d2c5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Get a single movie document from the collection \n",
+    "sample_movie = movies.find_one()\n",
+    "# Print out all the field names (keys) present in the movie \n",
+    "print(\"Here are the fields we have for each movie:\")\n",
+    "for field in sample_movie.keys():\n",
+    "    print(field)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "ce5b7ce6-2e8a-4b7f-9706-72cf0041f63f",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Title: Toy Story\n",
+      "Title: Jumanji\n",
+      "Title: Grumpier Old Men\n",
+      "Title: Waiting to Exhale\n",
+      "Title: Father of the Bride Part II\n",
+      "Title: Heat\n",
+      "Title: Sabrina\n",
+      "Title: Tom and Huck\n",
+      "Title: Sudden Death\n",
+      "Title: GoldenEye\n"
+     ]
+    }
+   ],
+   "source": [
+    "sample_movies = list(movies.find().limit(10))\n",
+    "for movie in sample_movies: \n",
+    "    print(f\"Title: {movie.get('title', 'N/A')}\") "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "66c4479b-b70c-4278-a1f6-27488d3bb04a",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "cd76f41e-c896-4841-b957-770ac2a6441b",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8db9dd66-9e6d-4998-8049-1ceddf6a2d25",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "5f50db79-3729-4d7a-ac1a-1c8e11c31022",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6f5f59bb-e368-476a-9b30-70114ff26dd9",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "bab35c15-d76a-495e-8914-33e3d07b930e",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "75787c66-eadc-4dce-a553-68f6fc5a9769",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "fbe7a43b-b1d5-4dec-893e-f93459636600",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "fb233cb0-ee28-41e8-a24e-b807f3fc0ef6",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "seminar",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.11"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
